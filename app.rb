@@ -4,9 +4,9 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-# require 'pry'
+require 'pry'
 require_relative './new_user'
-
+require_relative './new_document'
 class App < Sinatra::Base
 
   ########################
@@ -23,6 +23,7 @@ class App < Sinatra::Base
                         :port => uri.port,
                         :password => uri.password})
     set :session_secret, 'super secret'
+    $redis.setnx("doc_counter", 0)
   end
 
   before do
@@ -64,19 +65,19 @@ class App < Sinatra::Base
     session[:access_token] = nil
     redirect to ('/')
   end
+  # Create a new document - refers to document class
+  get('/documents/new') do
+    render(:erb, :create_doc)
+  end
+
   # See a specific document - finds it by name
   get('/documents/:id_name') do
-    render(:erb, :document)
+    render(:erb, :documents)
   end
 
   # See a specific document - and make changes
   get('/documents/:id_name/edit') do
-    render(:erb, :document)
-  end
-
-  # Create a new document - refers to document class
-  get('/documents/new') do
-    render(:erb, :create_doc)
+    render(:erb, :documents)
   end
 
   # User page wher user can see all their documents
@@ -84,16 +85,22 @@ class App < Sinatra::Base
     render(:erb, :user_page)
   end
 
-  # Creates a new document on redis?
+  # Creates a new document on redis
   post('/documents') do
-
-    redirect to ()
+    $redis.incr('doc_counter')
+    binding.pry
+    usr = JSON.parse($redis.get("user:#{session[:user_id]}"))
+    usr["role"] = "admin"
+    new_doc = Document.new(usr, params[:title],  params[:content], $redis.get('doc_counter'))
+    new_doc.create_doc
+    binding.pry
+    redirect to ('/')
   end
 
   # Remove a document that you created
   delete('/documents/:id_name') do
-
-    redirect to ()
+    $redis.del("document:#{params[:doc_id]}")
+    redirect to ("/")
   end
 
   # Edit a ocument
@@ -123,7 +130,7 @@ class App < Sinatra::Base
       get_stuff = HTTParty.get("https://www.googleapis.com/plus/v1/people/me?access_token=#{response["access_token"]}")
       user_id = get_stuff["id"]
       name    = get_stuff["displayName"]
-
+      session[:user_id] = user_id
       unless $redis.get("user:#{user_id}")
         binding.pry
         new_user = NewUser.new(user_id, name)

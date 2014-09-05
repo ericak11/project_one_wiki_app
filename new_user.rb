@@ -4,14 +4,12 @@ class NewUser
   def initialize(user_id, name)
     @user_id = user_id
     @name = name
-    @documents = []
   end
 
   def create_user_hash
     new_user = {
       user_id: user_id,
       name: name,
-      documents: documents,
     }
     new_user
   end
