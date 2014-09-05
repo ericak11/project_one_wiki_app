@@ -4,6 +4,8 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
+require 'pry'
+require_relative './new_user'
 
 class App < Sinatra::Base
 
@@ -35,9 +37,14 @@ class App < Sinatra::Base
   ########################
   # API KEYS
   ########################
-  CLIENT_ID     = ""
-  CLIENT_SECRET = ""
-  CALLBACK_URL  = "http://??????/oauth_callback"
+  CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
+  CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
+  CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
+
+  # HEROKU
+  # CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
+  # CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
+  # CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com:3000/oauth2callback"
 
   ########################
   # Routes
@@ -46,9 +53,10 @@ class App < Sinatra::Base
   get('/') do
     base_url = "https://accounts.google.com/o/oauth2/auth"
     state = SecureRandom.urlsafe_base64
-    # storing state in session because we need to compare it in a later request
     session[:state] = state
-    @url = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}"
+    scope = "profile"
+    # storing state in session because we need to compare it in a later request
+    @url = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
     render(:erb, :index)
   end
 
@@ -94,31 +102,34 @@ class App < Sinatra::Base
     redirect to ()
   end
 
-  get('/oauth_callback') do
+  get('/oauth2callback') do
     code = params[:code]
+
     # compare the states to ensure the information is from who we think it is
     if session[:state] == params[:state]
       # send a POST
       response = HTTParty.post(
-        "https://api.dropbox.com/1/oauth2/token",
+        "https://accounts.google.com/o/oauth2/token",
         :body => {
           code: code,
-          grant_type: "authorization_code",
           client_id: CLIENT_ID,
           client_secret: CLIENT_SECRET,
           redirect_uri: CALLBACK_URL,
+          grant_type: "authorization_code",
           },
-        :headers => {
-          "Accept" => "application/json"
-        },)
+        )
       session[:access_token] = response["access_token"]
       ## gets user info
-      get_stuff = HTTParty.post(
-          "https://api.dropbox.com/1/account/info",
-          :headers => {
-            "Authorization" => "Bearer #{session[:access_token]}",
-            "Accept" => "application/json",
-          },)
+      get_stuff = HTTParty.get("https://www.googleapis.com/plus/v1/people/me?access_token=#{response["access_token"]}")
+      user_id = get_stuff["id"]
+      name    = get_stuff["displayName"]
+
+      unless $redis.get("user:#{user_id}")
+        binding.pry
+        new_user = NewUser.new(user_id, name)
+        new_user.create_user
+      end
+
     end
     redirect to("/")
   end
