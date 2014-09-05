@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-require 'pry'
+# require 'pry'
 require_relative './new_user'
 
 class App < Sinatra::Base
