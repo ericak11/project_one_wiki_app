@@ -3,15 +3,12 @@
   <head>
     <meta charset="utf-8">
 
-    <title>project_one_wiki_app</title>
-
+    <title>wdi_wiki_app</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link href="/stylesheets/normalize.css" rel="stylesheet" type="text/css" media="all">
-    <link href="/stylesheets/style.css" rel="stylesheet" type="text/css" media="all">
+    <link href="<%= url('/stylesheets/normalize.css') %>" rel="stylesheet" type="text/css" media="all">
+    <link href="<%= url('/stylesheets/style.css') %>" rel="stylesheet" type="text/css" media="all">
   </head>
-
   <body>
     <%= yield %>
   </body>
