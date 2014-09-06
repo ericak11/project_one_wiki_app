@@ -1,8 +1,18 @@
- <form action="/documents" method="post">
+  <% if !@edit %>
+  <form action="/documents" method="post">
   <label>Title: </label>
       <input type="text" name="title" id="title">
       <br><br>
+  <% elsif @edit %>
+    <form method="post" action="/photos/<%=params[:index]%>">
+    <input type="hidden" name="_method" value="PUT" />
+    <% @document.each do |doc| %>
+      <h3>You are editing: <%= doc["doc_name"]%></h3>
+      <br>
+    <% end %>
+  <% end %>
       <label for="content">Content</label>
-      <textarea rows="10" name="content" id="content"></textarea>
+      <textarea rows="10" name="content" id="content">
+        <% if @edit %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea>
       <input type="submit">
 </form>

@@ -1,0 +1,5 @@
+<br> <br>
+  <% @doc.each do |doc| %>
+    <%= render(:erb, :_document, :locals => {:doc => doc}) %>
+  <% end %>
+

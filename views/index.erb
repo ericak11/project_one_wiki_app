@@ -3,3 +3,7 @@
 <%else %>
   <a href="<%=@url%>">Log in with Google</a>
 <% end %>
+  <% @docs.each do |doc| %>
+    <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
+  <% end %>
+

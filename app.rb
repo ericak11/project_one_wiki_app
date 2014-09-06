@@ -5,6 +5,7 @@ require 'uri'
 require 'httparty'
 require 'redcarpet'
 require 'pry'
+require 'reverse_markdown'
 require_relative './new_user'
 require_relative './new_document'
 class App < Sinatra::Base
@@ -51,6 +52,7 @@ class App < Sinatra::Base
   # Routes
   ########################
 
+  # Main page - can preview docs
   get('/') do
     base_url = "https://accounts.google.com/o/oauth2/auth"
     state = SecureRandom.urlsafe_base64
@@ -58,13 +60,15 @@ class App < Sinatra::Base
     scope = "profile"
     # storing state in session because we need to compare it in a later request
     @url = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
+    @docs = get_documents
     render(:erb, :index)
   end
-
+  # LOGOUT
   get('/logout') do
     session[:access_token] = nil
     redirect to ('/')
   end
+
   # Create a new document - refers to document class
   get('/documents/new') do
     render(:erb, :create_doc)
@@ -72,12 +76,15 @@ class App < Sinatra::Base
 
   # See a specific document - finds it by name
   get('/documents/:id_name') do
+    @doc = get_documents(params[:id_name])
     render(:erb, :documents)
   end
 
   # See a specific document - and make changes
   get('/documents/:id_name/edit') do
-    render(:erb, :documents)
+    @edit = true
+    @document = get_documents(params[:id_name])
+    render(:erb, :create_doc)
   end
 
   # User page wher user can see all their documents
@@ -87,18 +94,16 @@ class App < Sinatra::Base
 
   # Creates a new document on redis
   post('/documents') do
-    $redis.incr('doc_counter')
-    binding.pry
+    content = render(:markdown, params[:content])
     usr = JSON.parse($redis.get("user:#{session[:user_id]}"))
-    usr["role"] = "admin"
-    new_doc = Document.new(usr, params[:title],  params[:content], $redis.get('doc_counter'))
+    new_doc = Document.new(usr, params[:title], content, $redis.get('doc_counter'))
     new_doc.create_doc
-    binding.pry
+    $redis.incr('doc_counter')
     redirect to ('/')
   end
 
   # Remove a document that you created
-  delete('/documents/:id_name') do
+  delete('/documents/:doc_id') do
     $redis.del("document:#{params[:doc_id]}")
     redirect to ("/")
   end
@@ -111,7 +116,6 @@ class App < Sinatra::Base
 
   get('/oauth2callback') do
     code = params[:code]
-
     # compare the states to ensure the information is from who we think it is
     if session[:state] == params[:state]
       # send a POST
@@ -140,5 +144,21 @@ class App < Sinatra::Base
     end
     redirect to("/")
   end
+
+  def get_documents(id=nil)
+    @documents = []
+    $redis.keys('*document*').each do |key|
+      doc = JSON.parse($redis.get(key))
+      if id
+        if doc["doc_name"].gsub(" ", "_").match(id)
+          @documents << doc
+        end
+      else
+        @documents << doc
+      end
+    end
+    @documents
+  end
+
 
 end

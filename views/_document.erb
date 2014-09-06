@@ -1,0 +1,19 @@
+<% num = doc["doc_versions"].length-1 %>
+ <section>
+  <h1><%= doc["doc_name"] %></h1>
+  <%= doc["doc_versions"][num]["doc_content"]
+ %>
+  <p>Last edit made by: <%=doc["doc_versions"][num]["edit_made_by"]["name"]%></p>
+  <% if doc["primary_user"]["user_id"] == session[:user_id]  %>
+  <% name = doc["doc_name"] %>
+  <% name_link = name.gsub(" ", "_") %>
+    <form method="post" action="/<%= doc["doc_id"]  %>">
+       <input type="hidden" name="_method" value="DELETE" />
+       <input type="submit" value="Delete">
+     </form><br>
+     <form action="/documents/<%=name_link%>/edit" method="get">
+       <input type="submit" value="Edit">
+     </form>
+  <% end %>
+
+</section>
