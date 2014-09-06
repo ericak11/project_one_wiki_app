@@ -24,7 +24,6 @@ class Document
       doc_versions: @@doc_versions,
       content_users: content_users,
     }
-    binding.pry
     doc_hash
   end
 

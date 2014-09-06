@@ -5,6 +5,7 @@ require 'uri'
 require 'httparty'
 require 'redcarpet'
 require 'pry'
+require 'date'
 require 'reverse_markdown'
 require_relative './new_user'
 require_relative './new_document'
@@ -110,8 +111,13 @@ class App < Sinatra::Base
 
   # Edit a ocument
   put('/documents/:id_name') do
-
-    redirect to ()
+    content = render(:markdown, params[:content])
+    doc_to_get  = JSON.parse($redis.get("document:#{params[:doc_id]}"))
+    doc_to_get["doc_versions"].push(create_version_hash(content, session[:user], params[:doc_id]))
+    doc_key = "document:#{params[:doc_id]}"
+    $redis.set(doc_key, doc_to_get.to_json)
+    binding.pry
+    redirect to ("/documents/#{params[:id_name].gsub(" ", "_")}")
   end
 
   get('/oauth2callback') do
@@ -135,8 +141,11 @@ class App < Sinatra::Base
       user_id = get_stuff["id"]
       name    = get_stuff["displayName"]
       session[:user_id] = user_id
+      session[:user] = {
+          user_id: user_id,
+          name: name,
+      }
       unless $redis.get("user:#{user_id}")
-        binding.pry
         new_user = NewUser.new(user_id, name)
         new_user.create_user
       end
@@ -158,6 +167,17 @@ class App < Sinatra::Base
       end
     end
     @documents
+  end
+
+  def create_version_hash(doc_content, editor, doc_id)
+    version_hash = {
+    doc_version: $redis.get("doc_version:#{doc_id}"),
+    doc_content: doc_content,
+    create_date: DateTime.now,
+    edit_made_by: editor,
+    }
+    $redis.incr("doc_version:#{doc_id}")
+    version_hash
   end
 
 
