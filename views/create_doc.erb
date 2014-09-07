@@ -1,7 +1,9 @@
+<%= render(:erb, :_header) %>
+<section class="doc_input_form">
   <% if !@edit %>
   <form action="/documents" method="post">
   <label>Title: </label>
-      <input type="text" name="title" id="title">
+      <input class="title_input" type="text" name="title" id="doc_title">
       <br><br>
   <% elsif @edit %>
     <form method="post" action="/documents/<%= @document[0]["doc_name"] %>">
@@ -12,7 +14,9 @@
       <br>
     <% end %>
   <% end %>
-      <label for="content">Content</label>
-      <textarea rows="10" name="content" id="content"><% if @edit %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea>
-      <input type="submit">
-</form>
+      <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
+      <textarea name="content" id="content"><% if @edit %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea><br>
+      <br>
+    <input class="submit_button" type="submit">
+  </form>
+</section>

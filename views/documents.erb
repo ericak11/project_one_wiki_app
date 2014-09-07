@@ -1,5 +1,18 @@
-<br> <br>
-  <% @doc.each do |doc| %>
-    <%= render(:erb, :_document, :locals => {:doc => doc}) %>
-  <% end %>
-
+<%= render(:erb, :_header) %>
+<%= render(:erb, :_nav_bar) %>
+   <section class="main">
+    <% if @doc.length > 1 %>
+      <section class="box">
+      <h2 class="section_title"> Search Results </h2>
+        <% @doc.each do |doc| %>
+          <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
+        <% end %>
+      </section>
+    <% elsif @doc.length == 1 %>
+      <% @doc.each do |doc| %>
+        <%= render(:erb, :_document, :locals => {:doc => doc}) %>
+      <% end %>
+    <% else %>
+      <% redirect to ("/?search=#{params[:id_name]}") %>
+    <% end %>
+  </section>

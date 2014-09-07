@@ -1,0 +1,20 @@
+<div id="blackBar">
+  <h1 id="page_title"><a href="/">WDI Wiki</a></h1>
+    <section id="top_nav">
+      <li>
+
+        <form class="header_search" action="/documents" method="get">
+          <input type="search" name="search" id="search" placeholder="search">
+          <input class="button" type="submit" value="Go">
+        </form>
+      </li>
+      <% if session[:access_token] %>
+        <li><a class="header_link" id="logout" href="/logout">Logout</a></li>
+        <li><a class="header_link" id="add_new_doc" href="/documents/new">Add New Document</a></li>
+        <li><a class="header_link" id="view_profile" href="/users/<%=session[:user_id]%>">View Profile</a></li>
+      <%else %>
+        <li><a class="header_link" id="log_in" href="<%=@url%>">Log in with Google</a></li>
+      <% end %>
+    </section>
+
+</div>

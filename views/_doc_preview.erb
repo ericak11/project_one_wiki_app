@@ -1,7 +1,12 @@
+
 <% num = doc["doc_versions"].length-1 %>
- <section>
-  <% name = doc["doc_name"] %>
-  <% name_link = name.gsub(" ", "_") %>
-  <h1><a href="/documents/<%=name_link %>"><%= doc["doc_name"] %></a></h1>
-  <p>document creator: <%= doc["primary_user"]["name"]%></p>
-</section>
+<% name = doc["doc_name"] %>
+<% name_link = name.gsub(" ", "_") %>
+<h3>
+  <a href="/documents/<%=name_link %>"><%= doc["doc_name"] %></a>
+  <br>
+  <section class="tiny_font">document creator:
+    <span class="cursive"><%= doc["primary_user"]["name"]%></span>
+  </section>
+</h3>
+

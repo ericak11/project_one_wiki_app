@@ -66,8 +66,13 @@ class App < Sinatra::Base
   end
   # LOGOUT
   get('/logout') do
-    session[:access_token] = nil
+    session.clear
     redirect to ('/')
+  end
+
+  get('/documents') do
+    page = params[:search].gsub(" ", "_")
+    redirect to ("/documents/#{page}")
   end
 
   # Create a new document - refers to document class
@@ -90,7 +95,16 @@ class App < Sinatra::Base
 
   # User page wher user can see all their documents
   get('/users/:user_id') do
+    @user_documents = get_users_doc(params[:user_id])
     render(:erb, :user_page)
+  end
+
+  # User page where user can edit personal info/permissions
+  get('/users/:user_id/edit') do
+    if params[:change]
+      @change_name = true
+    end
+    render(:erb, :user_permissions)
   end
 
   # Creates a new document on redis
@@ -109,14 +123,18 @@ class App < Sinatra::Base
     redirect to ("/")
   end
 
-  # Edit a ocument
+  # edit user name
+  put('/users/:user_id') do
+
+  end
+
+  # Edit a document
   put('/documents/:id_name') do
     content = render(:markdown, params[:content])
     doc_to_get  = JSON.parse($redis.get("document:#{params[:doc_id]}"))
     doc_to_get["doc_versions"].push(create_version_hash(content, session[:user], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
-    binding.pry
     redirect to ("/documents/#{params[:id_name].gsub(" ", "_")}")
   end
 
@@ -167,6 +185,17 @@ class App < Sinatra::Base
       end
     end
     @documents
+  end
+
+  def get_users_doc(user_id)
+    @user_docs = []
+    $redis.keys('*document*').each do |key|
+      doc = JSON.parse($redis.get(key))
+      if user_id == doc["primary_user"]["user_id"]
+        @user_docs.push(doc)
+      end
+    end
+    @user_docs
   end
 
   def create_version_hash(doc_content, editor, doc_id)

@@ -1,0 +1,14 @@
+<%= render(:erb, :_header) %>
+<%= render(:erb, :_nav_bar) %>
+<section class="main">
+  <section class="box" id="your_articles">
+  <h2 class="section_title"> Your Posts </h2>
+    <% @user_documents.each do |doc| %>
+      <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
+    <% end %>
+  </section>
+  <section class="box" id="user_permissions">
+    <h2 class="section_title"> User Settings </h2>
+  <a href="/users/<%=session[:user_id]%>/edit">Edit user permissions</a>
+  </section>
+</section>

@@ -1,9 +1,19 @@
-<% if session[:access_token] %>
-  <a href="/logout">Logout</a>
-<%else %>
-  <a href="<%=@url%>">Log in with Google</a>
-<% end %>
+<%= render(:erb, :_header) %>
+<%= render(:erb, :_nav_bar) %>
+<% @index = true %>
+  <section class="main" >
+    <% if params[:search] %><h2 id="search_error">There were no matches to your search for '<%=params[:search]%>'</h2><% end %>
+    <section class="box" id="most_recent">
+  <h2 class="section_title"> Most Recent Posts </h2>
   <% @docs.each do |doc| %>
     <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
   <% end %>
+  </section>
+  <section class="box" id="random_article">
+    <h2 class="section_title"> Random Article </h2>
+    <% doc = @docs.sample %>
+      <%= render(:erb, :_document, :locals => {:doc => doc}) %>
+  </section>
+</section>
+
 

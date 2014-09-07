@@ -1,0 +1,14 @@
+<%= render(:erb, :_header) %>
+<section class="main">
+<% if @change_name %>
+  <form method="post" action="/users/<%=session[:user_id] %>">
+  <input type="hidden" name="_method" value="PUT" />
+  <label>Change User Handle: </label>
+  <input type="text" name="user_name" id="user_name" placeholder="hello">
+  <input type="submit">
+<!-- potentially add ability to add a 'handle' that can be used in place of your name? -->
+<% else %>
+  <a href="/users/:user_id/edit?change=user_name">Change user handle</a>
+
+<% end%>
+</section>
