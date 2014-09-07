@@ -47,7 +47,7 @@ class App < Sinatra::Base
   # HEROKU
   CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
   CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
-  CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com:3000/oauth2callback"
+  CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
 
   ########################
   # Routes
