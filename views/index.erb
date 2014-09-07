@@ -11,8 +11,10 @@
   </section>
   <section class="box" id="random_article">
     <h2 class="section_title"> Random Article </h2>
+    <%if @docs.length >= 1 %>
     <% doc = @docs.sample %>
       <%= render(:erb, :_document, :locals => {:doc => doc}) %>
+    <% end %>
   </section>
 </section>
 
