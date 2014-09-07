@@ -1,6 +1,6 @@
 require 'date'
 require 'redcarpet'
-require 'pry'
+# require 'pry'
 
 class Document
   attr_reader :primary_user, :doc_id
