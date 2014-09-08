@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-require 'pry' if development?
+require 'pry' if environment == :development
 require 'date'
 require 'diffy'
 require 'reverse_markdown'
