@@ -1,0 +1,9 @@
+
+<% version = doc["doc_version"] %>
+<% created = doc["create_date"] %>
+
+<h3>
+  <a href="/documents/<%=@name_link %>/versions/<%=version%>">
+    <% if @current %> Current Version
+    <% else %>Version <%= version %><% end %>: <%=created %></a>
+</h3>

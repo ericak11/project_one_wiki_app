@@ -16,7 +16,11 @@
     <li><form method="post" action="<%= doc["doc_id"]  %>">
        <input type="hidden" name="_method" value="DELETE" />
        <input class="submit_button" type="submit" value="Delete" id="doc_delete">
-     </form></li></ul>
+    </form></li>
+    <li><form method="get" action="/documents/<%= name_link %>/versions">
+       <input class="submit_button" type="submit" value="See Versions" id="versions">
+     </form></li>
+   </ul>
    </div>
   <% end %>
 </section>

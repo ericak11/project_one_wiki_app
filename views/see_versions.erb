@@ -1,0 +1,13 @@
+  <%= render(:erb, :_header) %>
+  <%= render(:erb, :_nav_bar) %>
+  <% name = @documents[0]["doc_name"] %>
+  <% @name_link = name.gsub(" ", "_") %>
+
+<section class="main">
+  <% @documents[0]["doc_versions"].each_with_index do |doc, index| %>
+    <% if @documents[0]["doc_versions"].length - 1 == index  %>
+      <% @current = true %>
+    <% end %>
+    <%= render(:erb, :_version_link, :locals => {:doc => doc}) %>
+  <% end %>
+</section>

@@ -1,5 +1,5 @@
 body {
-  background-image: url('/images/gradient_blue.jpg');
+  background-color: rgba(255,255,255,.5);
   font-family: 'News Cycle', sans-serif;
 }
 
@@ -41,16 +41,18 @@ code{
   text-decoration: none;
    color: #55a1c8;
 }
-
-#blackBar{
-  position:top;
+.header {
+/*  position:top;*/
   position: fixed;
   top:0;
   left:0;
+}
+#blackBar{
   width:100%;
   height:75px;
   background-color: black;
   margin-bottom: 10px;
+  margin-top: -8px;
   /*background: -webkit-linear-gradient(rgba(0,0,0,1), rgba(0,0,0,.7));*/
 }
 
@@ -69,7 +71,7 @@ nav{
 
 .main {
   margin-left: 200px;
-  margin-top: 100px;
+  margin-top: 240px;
   padding: 0;
 }
 
@@ -104,9 +106,6 @@ nav{
     width: 250px;
     padding: 5px;
     overflow: hidden;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 10px;
     position: relative;
 
 }
@@ -197,7 +196,7 @@ textarea {
 
 .doc_input_form {
     margin-left: 40px;
-    margin-top: 100px;
+    margin-top: 240px;
 }
 
 #edit_buttons li{
@@ -211,3 +210,16 @@ textarea {
   margin-left: 20px;
 }
 
+.diff{overflow:auto;}
+.diff ul{background:#fff;overflow:auto;font-size:14px;list-style:none;margin:0;padding:0;display:table;width:100%;}
+.diff del, .diff ins{display:block;text-decoration:none;}
+.diff li{padding:0; display:table-row;margin: 0;height:1em;}
+.diff li.ins{background:#dfd; color:#080}
+.diff li.del{background:#fee; color:#b00}
+.diff li:hover{background:#ffc}
+/* try 'whitespace:pre;' if you don't want lines to wrap */
+.diff del, .diff ins, .diff span{white-space:pre-wrap;}
+.diff del strong{font-weight:normal;background:#fcc;}
+.diff ins strong{font-weight:normal;background:#9f9;}
+.diff li.diff-comment { display: none; }
+.diff li.diff-block-info { background: none repeat scroll 0 0 gray; }

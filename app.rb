@@ -4,8 +4,9 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-# require 'pry'
+require 'pry'
 require 'date'
+require 'diffy'
 require 'reverse_markdown'
 require_relative './new_user'
 require_relative './new_document'
@@ -40,14 +41,14 @@ class App < Sinatra::Base
   ########################
   # API KEYS
   ########################
-  # CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
-  # CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
-  # CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
+  CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
+  CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
+  CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
 
   # HEROKU
-  CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
-  CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
-  CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
+  # CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
+  # CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
+  # CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
 
   ########################
   # Routes
@@ -55,24 +56,26 @@ class App < Sinatra::Base
 
   # Main page - can preview docs
   get('/') do
-    base_url = "https://accounts.google.com/o/oauth2/auth"
-    state = SecureRandom.urlsafe_base64
-    session[:state] = state
-    scope = "profile"
-    # storing state in session because we need to compare it in a later request
-    @url = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
+    @url = log_in_google
     @docs = get_documents
     render(:erb, :index)
   end
+
   # LOGOUT
   get('/logout') do
     session.clear
     redirect to ('/')
   end
 
-  get('/documents') do
+  get ('/search') do
     page = params[:search].gsub(" ", "_")
     redirect to ("/documents/#{page}")
+  end
+
+  get('/documents') do
+    @docs = get_documents
+    @pages = (@docs.length/10.0).ceil
+    render(:erb, :browse)
   end
 
   # Create a new document - refers to document class
@@ -82,7 +85,8 @@ class App < Sinatra::Base
 
   # See a specific document - finds it by name
   get('/documents/:id_name') do
-    @doc = get_documents(params[:id_name])
+    @url = log_in_google
+    @doc = get_documents(params[:id_name].downcase)
     render(:erb, :documents)
   end
 
@@ -91,6 +95,17 @@ class App < Sinatra::Base
     @edit = true
     @document = get_documents(params[:id_name])
     render(:erb, :create_doc)
+  end
+
+  get('/documents/:id_name/versions') do
+    @document = get_documents(params[:id_name])
+    render(:erb, :see_versions)
+  end
+
+  get('/documents/:id_name/versions/:version_num') do
+    @document = get_documents(params[:id_name])
+    @version = params[:version_num]
+    render(:erb, :difference)
   end
 
   # User page wher user can see all their documents
@@ -111,10 +126,15 @@ class App < Sinatra::Base
   post('/documents') do
     content = render(:markdown, params[:content])
     usr = JSON.parse($redis.get("user:#{session[:user_id]}"))
-    new_doc = Document.new(usr, params[:title], content, $redis.get('doc_counter'))
-    new_doc.create_doc
-    $redis.incr('doc_counter')
-    redirect to ('/')
+    match = parse_JSON_for_match(params[:title].downcase)
+    if match
+      redirect to ("/documents/new?title_match=true")
+    else
+      new_doc = Document.new(usr, params[:title].downcase, content, $redis.get('doc_counter'))
+      new_doc.create_doc
+      $redis.incr('doc_counter')
+      redirect to ('/')
+    end
   end
 
   # Remove a document that you created
@@ -169,8 +189,9 @@ class App < Sinatra::Base
       end
 
     end
-    redirect to("/")
+    redirect back
   end
+
 
   def get_documents(id=nil)
     @documents = []
@@ -198,6 +219,17 @@ class App < Sinatra::Base
     @user_docs
   end
 
+  def parse_JSON_for_match(item_to_match)
+    @match = nil
+    $redis.keys('*document*').each do |key|
+      doc = JSON.parse($redis.get(key))
+      if item_to_match == doc["doc_name"]
+        @match = true
+      end
+    end
+    @match
+  end
+
   def create_version_hash(doc_content, editor, doc_id)
     version_hash = {
     doc_version: $redis.get("doc_version:#{doc_id}"),
@@ -209,5 +241,14 @@ class App < Sinatra::Base
     version_hash
   end
 
+  def log_in_google
+    base_url = "https://accounts.google.com/o/oauth2/auth"
+    state = SecureRandom.urlsafe_base64
+    session[:state] = state
+    scope = "profile"
+    # storing state in session because we need to compare it in a later request
+    url_for_login = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
+    url_for_login
+  end
 
 end
