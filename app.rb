@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-# require 'pry'
+require 'pry'
 require 'date'
 require 'diffy'
 require 'reverse_markdown'
@@ -41,14 +41,14 @@ class App < Sinatra::Base
   ########################
   # API KEYS
   ########################
-  # CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
-  # CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
-  # CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
+  CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
+  CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
+  CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
 
   # HEROKU
-  CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
-  CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
-  CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
+  # CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
+  # CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
+  # CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
 
   ########################
   # Routes
@@ -80,6 +80,7 @@ class App < Sinatra::Base
 
   # Create a new document - refers to document class
   get('/documents/new') do
+    @create_new = true
     render(:erb, :create_doc)
   end
 
@@ -94,6 +95,7 @@ class App < Sinatra::Base
   get('/documents/:id_name/edit') do
     @edit = true
     @document = get_documents(params[:id_name])
+    binding.pry
     if @document[0]["primary_user"]["user_id"] == session[:user_id]
       @approved = true
     end
