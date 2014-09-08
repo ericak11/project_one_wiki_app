@@ -86,7 +86,7 @@ class App < Sinatra::Base
   # See a specific document - finds it by name
   get('/documents/:id_name') do
     @url = log_in_google
-    @doc = get_documents(params[:id_name])
+    @doc = get_documents(params[:id_name].downcase)
     render(:erb, :documents)
   end
 
