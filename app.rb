@@ -94,6 +94,9 @@ class App < Sinatra::Base
   get('/documents/:id_name/edit') do
     @edit = true
     @document = get_documents(params[:id_name])
+    if @document[0]["primary_user"]["user_id"] == session[:user_id]
+      @approved = true
+    end
     render(:erb, :create_doc)
   end
 

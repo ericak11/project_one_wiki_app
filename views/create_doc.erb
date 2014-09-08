@@ -1,7 +1,4 @@
 <%= render(:erb, :_header) %>
- <%if @document[0]["primary_user"]["user_id"] == session[:user_id] %>
- <% @approved = true %>
- <% end %>
 <section class="doc_input_form">
   <% if params[:title_match] %><h2 id="search_error">This title already exists</h2><% end %>
   <% if !@edit %>
