@@ -96,10 +96,8 @@ class App < Sinatra::Base
   get('/documents/:id_name/edit') do
     @edit = true
     @document = get_documents(params[:id_name])
-    binding.pry
-    if @document[0]["primary_user"]["user_id"] == session[:user_id]
-      @approved = true
-    end
+    @approved = approved(@document[0]["primary_user"]["user_id"], session[:user_id])
+    @can_edit = can_edit
     render(:erb, :create_doc)
   end
 
@@ -116,6 +114,7 @@ class App < Sinatra::Base
 
   # User page wher user can see all their documents
   get('/users/:user_id') do
+    @approved = approved(params[:user_id] , session[:user_id])
     @user_documents = get_users_doc(params[:user_id])
     render(:erb, :user_page)
   end
@@ -198,6 +197,9 @@ class App < Sinatra::Base
     redirect back
   end
 
+  #####################
+  # ## METHODS ########
+  #####################
 
   def get_documents(id=nil)
     @documents = []
@@ -256,5 +258,27 @@ class App < Sinatra::Base
     url_for_login = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
     url_for_login
   end
+
+  def approved(item1, item2)
+    if item1 == item2
+      is_approved = true
+    end
+    is_approved
+  end
+
+  def can_edit
+    is_approved = nil
+    $redis.keys('*document*').each do |key|
+      doc = JSON.parse($redis.get(key))
+      doc["content_users"].each do |x|
+        if x == session[:user_id]
+          is_approved = true
+        end
+      end
+    end
+    is_approved
+  end
+
+
 
 end

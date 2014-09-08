@@ -217,7 +217,6 @@ textarea {
 .diff li.ins{background:#dfd; color:#080}
 .diff li.del{background:#fee; color:#b00}
 .diff li:hover{background:#ffc}
-/* try 'whitespace:pre;' if you don't want lines to wrap */
 .diff del, .diff ins, .diff span{white-space:pre-wrap;}
 .diff del strong{font-weight:normal;background:#fcc;}
 .diff ins strong{font-weight:normal;background:#9f9;}

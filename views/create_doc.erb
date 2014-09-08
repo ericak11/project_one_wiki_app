@@ -1,29 +1,27 @@
 <%= render(:erb, :_header) %>
 <section class="doc_input_form">
-  <% if params[:title_match] %><h2 id="search_error">This title already exists</h2><% end %>
-  <% if !@edit %>
-  <form action="/documents" method="post">
-  <label>Title: </label>
-      <input class="title_input" type="text" name="title" id="doc_title" required>
-      <br><br>
-  <% elsif @edit %>
-    <%if @approved %>
-      <form method="post" action="/documents/<%= @document[0]["doc_name"] %>">
-      <input type="hidden" name="_method" value="PUT" />
-      <% @document.each do |doc| %>
-        <h3>You are editing: <%= doc["doc_name"]%></h3>
-        <input type="hidden" name="doc_id" value="<%=doc["doc_id"]%>"/>
-        <br>
-      <% end %>
-    <% else %>
-      <h2 id="search_error">You are not authorized to make this adustment</h2>
-    <% end %>
-  <% end %>
-      <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
-      <textarea required name="content" id="content"><% if @edit && @approved %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea><br>
-      <br>
-        <%if @approved || @create_new %>
-    <input class="submit_button" type="submit">
+  <%if @approved || @create_new%>
+    <% if params[:title_match] %><h2 id="search_error">This title already exists</h2><% end %>
+    <% if !@edit %>
+    <form action="/documents" method="post">
+    <label>Title: </label>
+        <input class="title_input" type="text" name="title" id="doc_title" required>
+        <br><br>
+    <% elsif @edit %>
+        <form method="post" action="/documents/<%= @document[0]["doc_name"] %>">
+        <input type="hidden" name="_method" value="PUT" />
+        <% @document.each do |doc| %>
+          <h3>You are editing: <%= doc["doc_name"]%></h3>
+          <input type="hidden" name="doc_id" value="<%=doc["doc_id"]%>"/>
+          <br>
         <% end %>
+    <% end %>
+        <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
+        <textarea required name="content" id="content"><% if @approved %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea><br>
+        <br>
+      <input class="submit_button" type="submit">
+  <% else %>
+      <h2 id="search_error">You are not authorized to make this adustment</h2>
+  <% end %>
   </form>
 </section>

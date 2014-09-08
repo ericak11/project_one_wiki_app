@@ -3,7 +3,6 @@
   <% if index == @version.to_i %>
     <% @string1 = ReverseMarkdown.convert doc["doc_content"] %>
   <% end %>
-
 <% end %>
 <% string1 = @string1 %>
 <% current = @documents[0]["doc_versions"].length - 1%>
