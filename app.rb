@@ -4,7 +4,7 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-require 'pry'
+require 'pry' if development?
 require 'date'
 require 'diffy'
 require 'reverse_markdown'
