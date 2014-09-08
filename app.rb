@@ -74,8 +74,15 @@ class App < Sinatra::Base
   end
 
   get('/documents') do
-    @docs = get_documents
-    @pages = (@docs.length/10.0).ceil
+    @url = log_in_google
+    @first = 1
+    @new_doc_list = get_documents
+    @docs  = @new_doc_list.take(10)
+    if params[:first]
+      @docs = @new_doc_list.drop(params[:first].to_i - 1).take(10)
+      @first = params[:first].to_i
+    end
+    # @pages = (@docs.length/10.0).ceil
     render(:erb, :browse)
   end
 
@@ -96,17 +103,19 @@ class App < Sinatra::Base
   get('/documents/:id_name/edit') do
     @edit = true
     @document = get_documents(params[:id_name])
-    @approved = approved(@document[0]["primary_user"]["user_id"], session[:user_id])
+    @approved = approved(@document[0]["primary_user"]["user_id"], session[:current_user][:user_id])
     @can_edit = can_edit
     render(:erb, :create_doc)
   end
 
   get('/documents/:id_name/versions') do
+    @url = log_in_google
     @document = get_documents(params[:id_name])
     render(:erb, :see_versions)
   end
 
   get('/documents/:id_name/versions/:version_num') do
+    @url = log_in_google
     @document = get_documents(params[:id_name])
     @version = params[:version_num]
     render(:erb, :difference)
@@ -114,7 +123,7 @@ class App < Sinatra::Base
 
   # User page wher user can see all their documents
   get('/users/:user_id') do
-    @approved = approved(params[:user_id] , session[:user_id])
+    @approved = approved(params[:user_id] , session[:current_user][:user_id])
     @user_documents = get_users_doc(params[:user_id])
     render(:erb, :user_page)
   end
@@ -130,7 +139,7 @@ class App < Sinatra::Base
   # Creates a new document on redis
   post('/documents') do
     content = render(:markdown, params[:content])
-    usr = JSON.parse($redis.get("user:#{session[:user_id]}"))
+    usr = JSON.parse($redis.get("user:#{session[:current_user][:user_id]}"))
     match = parse_JSON_for_match(params[:title].downcase)
     if match
       redirect to ("/documents/new?title_match=true")
@@ -157,13 +166,14 @@ class App < Sinatra::Base
   put('/documents/:id_name') do
     content = render(:markdown, params[:content])
     doc_to_get  = JSON.parse($redis.get("document:#{params[:doc_id]}"))
-    doc_to_get["doc_versions"].push(create_version_hash(content, session[:user], params[:doc_id]))
+    doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user][:name], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
     redirect to ("/documents/#{params[:id_name].gsub(" ", "_")}")
   end
 
   get('/oauth2callback') do
+    session[:current_user] = {}
     code = params[:code]
     # compare the states to ensure the information is from who we think it is
     if session[:state] == params[:state]
@@ -178,16 +188,14 @@ class App < Sinatra::Base
           grant_type: "authorization_code",
           },
         )
-      session[:access_token] = response["access_token"]
+      session[:current_user][:access_token] = response["access_token"]
       ## gets user info
       get_stuff = HTTParty.get("https://www.googleapis.com/plus/v1/people/me?access_token=#{response["access_token"]}")
       user_id = get_stuff["id"]
       name    = get_stuff["displayName"]
-      session[:user_id] = user_id
-      session[:user] = {
-          user_id: user_id,
-          name: name,
-      }
+      session[:current_user][:user_id] = user_id
+      session[:current_user][:name] = name
+
       unless $redis.get("user:#{user_id}")
         new_user = NewUser.new(user_id, name)
         new_user.create_user
@@ -271,7 +279,7 @@ class App < Sinatra::Base
     $redis.keys('*document*').each do |key|
       doc = JSON.parse($redis.get(key))
       doc["content_users"].each do |x|
-        if x == session[:user_id]
+        if x == session[:current_user][:user_id]
           is_approved = true
         end
       end

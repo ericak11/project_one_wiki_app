@@ -4,14 +4,9 @@
     <section class="box" id="posts">
     <h2 class="section_title"> Most Recent Posts </h2>
     <% @docs.each_with_index do |doc, index| %>
-      <% if @docs.length > 10 %>
-        <% if index < 10 %>
           <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
-        <% end %>
-      <% else %>
-        <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
-      <% end %>
     <% end %>
-      <% if @docs.length > 10 %><a href="/documents?first=11">NEXT</a><%end%>
+    <% if @docs.length == 10 %><a href="/documents?first=<%= @first + 10 %>">NEXT</a><%end%>
+        <% if @docs.length < 10 %><a href="/documents?first=<%= @first -10 %>">PREVIOUS</a><%end%>
      </section>
   </section>

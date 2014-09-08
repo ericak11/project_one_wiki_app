@@ -1,7 +1,7 @@
 <%= render(:erb, :_header) %>
 <section class="main">
 <% if @change_name %>
-  <form method="post" action="/users/<%=session[:user_id] %>">
+  <form method="post" action="/users/<%=session[:current_user][:user_id] %>">
   <input type="hidden" name="_method" value="PUT" />
   <label>Change User Handle: </label>
   <input type="text" name="user_name" id="user_name" placeholder="hello">

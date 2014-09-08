@@ -10,7 +10,7 @@
   </section>
   <section class="box" id="user_permissions">
     <h2 class="section_title"> User Settings </h2>
-  <a href="/users/<%=session[:user_id]%>/edit">Edit user permissions</a>
+  <a href="/users/<%=session[:current_user][:user_id]%>/edit">Edit user permissions</a>
   <% else %>
     <h2 id="search_error">You are not authorized to view this page</h2>
   <% end %>
