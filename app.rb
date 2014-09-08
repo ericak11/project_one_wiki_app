@@ -4,13 +4,14 @@ require 'json'
 require 'uri'
 require 'httparty'
 require 'redcarpet'
-require 'pry' if environment == :development
+require 'pry' if ENV["RACK_ENV"] == "development"
 require 'date'
 require 'diffy'
 require 'reverse_markdown'
 require_relative './new_user'
 require_relative './new_document'
 class App < Sinatra::Base
+binding.pry
 
   ########################
   # Configuration
