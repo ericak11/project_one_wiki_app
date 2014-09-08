@@ -7,6 +7,6 @@
           <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
     <% end %>
     <% if @docs.length == 10 %><a href="/documents?first=<%= @first + 10 %>">NEXT</a><%end%>
-        <% if @docs.length < 10 %><a href="/documents?first=<%= @first -10 %>">PREVIOUS</a><%end%>
+    <% if @docs.length < 10 && @new_doc_list.length > 10%><a href="/documents?first=<%= @first -10 %>">PREVIOUS</a><%end%>
      </section>
   </section>
