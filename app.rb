@@ -11,7 +11,6 @@ require 'reverse_markdown'
 require_relative './new_user'
 require_relative './new_document'
 class App < Sinatra::Base
-binding.pry
 
   ########################
   # Configuration
