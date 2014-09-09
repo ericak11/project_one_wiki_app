@@ -3,7 +3,7 @@
 <section class="main">
   <section class="box" id="your_articles">
     <% if @approved %>
-  <h2 class="section_title"> Your Posts </h2>
+  <h2 class="section_title"><%=session[:current_user][:name]%>'s Posts </h2>
     <% @user_documents.each do |doc| %>
       <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
     <% end %>

@@ -20,6 +20,7 @@ class App < Sinatra::Base
     enable :logging
     enable :method_override
     enable :sessions
+    use RackSessionAccess if environment == :test
     REDIS_URL = ENV["REDISTOGO_URL"]
     uri = URI.parse(ENV["REDISTOGO_URL"])
     $redis = Redis.new({:host => uri.host,
