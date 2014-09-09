@@ -16,11 +16,9 @@
       </section>
       <section class="box" id="pending_requests">
       <h2 class="section_title"> Pending Requests </h2>
-       <% if @user["pending_requests"] %>
          <% @user["pending_requests"].each do |request| %>
             <%= render(:erb, :_pending_list, :locals => {:request => request}) %>
           <% end %>
-        <% end %>
       </section>
       <section class="box" id="user_permissions">
         <h2 class="section_title"> User Settings </h2>
