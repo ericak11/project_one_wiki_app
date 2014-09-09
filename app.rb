@@ -59,7 +59,7 @@ class App < Sinatra::Base
   # Main page - can preview docs
   get('/') do
     @url = log_in_google
-    @docs = get_documents
+    @docs = get_by_params({:what_to_query => "document"})
     render(:erb, :index)
   end
 
@@ -77,7 +77,7 @@ class App < Sinatra::Base
   get('/documents') do
     @url = log_in_google
     @first = 1
-    @new_doc_list = get_documents
+    @new_doc_list = get_by_params({:what_to_query => "document"})
     @docs  = @new_doc_list.take(10)
     if params[:first]
       @docs = @new_doc_list.drop(params[:first].to_i - 1).take(10)
@@ -95,7 +95,7 @@ class App < Sinatra::Base
 
   # See a specific document - finds it by name
   get('/documents/:id_name') do
-     @doc = get_documents(params[:id_name].downcase)
+     @doc = get_by_params({:query_type => "id", :id => params[:id_name].downcase, :what_to_query => "document"})
     if session[:current_user]
       @user_id = session[:current_user][:user_id]
     else
@@ -111,21 +111,21 @@ class App < Sinatra::Base
   # See a specific document - and make changes
   get('/documents/:id_name/edit') do
     @edit = true
-    @document = get_documents(params[:id_name])
+    @document = get_by_params({:query_type => "id", :id => params[:id_name], :what_to_query => "document"})
     @approved = approved(@document[0]["primary_user"]["user_id"], session[:current_user][:user_id])
-    @can_edit = can_edit
+    @can_edit = can_edit(@document[0]["doc_id"])
     render(:erb, :create_doc)
   end
 
   get('/documents/:id_name/versions') do
     @url = log_in_google
-    @document = get_documents(params[:id_name])
+    @document = get_by_params({:query_type => "id", :id => params[:id_name], :what_to_query => "document"})
     render(:erb, :see_versions)
   end
 
   get('/documents/:id_name/versions/:version_num') do
     @url = log_in_google
-    @document = get_documents(params[:id_name])
+    @document = get_by_params({:query_type => "id", :id => params[:id_name], :what_to_query => "document"})
     @version = params[:version_num]
     render(:erb, :difference)
   end
@@ -133,9 +133,9 @@ class App < Sinatra::Base
   # User page wher user can see all their documents
   get('/users/:user_id') do
     @approved = approved(params[:user_id] , session[:current_user][:user_id])
-    @editable_docs =  get_editable_docs(params[:user_id])
-    @user_documents = get_users_doc(params[:user_id])
-    @user = get_user(params[:user_id])
+    @editable_docs =  get_by_params({:query_type => "compare to user", :param1 => params[:user_id], :what_to_query => "document"})
+    @user_documents = get_by_params({:query_type => "compare to primary", :param1 => params[:user_id], :what_to_query => "document"})
+    @user = get_single_redis_item(params[:user_id], "user")
     render(:erb, :user_page)
   end
 
@@ -150,8 +150,8 @@ class App < Sinatra::Base
   # Creates a new document on redis
   post('/documents') do
     content = render(:markdown, params[:content])
-    usr = JSON.parse($redis.get("user:#{session[:current_user][:user_id]}"))
-    match = parse_JSON_for_match(params[:title].downcase)
+    usr =  get_single_redis_item(session[:current_user][:user_id], "user")
+    match = get_by_params({:query_type => "match", :param1 => params[:title].downcase, :what_to_query => "document"})
     if match
       redirect to ("/documents/new?title_match=true")
     else
@@ -170,7 +170,7 @@ class App < Sinatra::Base
 
   # edit user name
   put('/users/:user_id/:doc_id') do
-    user_to_get  = JSON.parse($redis.get("user:#{params[:user_id]}"))
+    user_to_get = get_single_redis_item(params[:user_id], "user")
     user_to_get["pending_requests"].push(edit_request_hash(session[:current_user][:user_id], params[:doc_id]))
     user_key = "user:#{params[:user_id]}"
     $redis.set(user_key, user_to_get.to_json)
@@ -180,7 +180,7 @@ class App < Sinatra::Base
   # Edit a document
   put('/documents/:id_name') do
     content = render(:markdown, params[:content])
-    doc_to_get  = JSON.parse($redis.get("document:#{params[:doc_id]}"))
+    doc_to_get  = get_single_redis_item(params[:doc_id], "document")
     doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
@@ -188,11 +188,11 @@ class App < Sinatra::Base
   end
 
   put('/documents/:doc_id/permission/:request_info') do
-    doc_to_get  = get_doc(params[:doc_id])
+    doc_to_get  = get_single_redis_item(params[:doc_id], "document")
     doc_to_get["content_users"].push({user_id: params[:request_info]})
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
-    user = get_user(session[:current_user][:user_id])
+    user = get_single_redis_item(session[:current_user][:user_id], "user")
     user["pending_requests"].delete_if { |x| x["request_user_id"] == params[:request_info]}
     user_key = "user:#{session[:current_user][:user_id]}"
     $redis.set(user_key, user.to_json)
@@ -200,10 +200,11 @@ class App < Sinatra::Base
   end
 
   put('/documents/deny/:request_info') do
-    user = get_user(session[:current_user][:user_id])
+    user = get_single_redis_item(session[:current_user][:user_id], "user")
     user["pending_requests"].delete_if { |x| x["request_user_id"] == params[:request_info]}
     user_key = "user:#{session[:current_user][:user_id]}"
     $redis.set(user_key, user.to_json)
+    redirect back
   end
 
   get('/oauth2callback') do
@@ -242,13 +243,27 @@ class App < Sinatra::Base
   # ## METHODS ########
   #####################
 
-  def get_documents(id=nil)
+  def get_by_params(options={})
     @documents = []
-    $redis.keys('*document*').each do |key|
-      doc = JSON.parse($redis.get(key))
-      if id
-        if doc["doc_name"].gsub(" ", "_").match(id)
+    $redis.keys("*#{options[:what_to_query]}*").each do |key|
+      doc = get_single_redis_item(key)
+      if options[:query_type] == "id"
+        if doc["doc_name"].gsub(" ", "_").match(options[:id])
           @documents << doc
+        end
+      elsif options[:query_type] == "compare to primary"
+        if options[:param1] == doc["primary_user"]["user_id"]
+          @documents << doc
+        end
+      elsif options[:query_type] == "compare to user"
+        doc["content_users"].each do |x|
+          if options[:param1] == x["user_id"]
+            @documents << doc
+          end
+        end
+      elsif options[:query_type] == "match"
+        if options[:param1] == doc["doc_name"]
+          return true
         end
       else
         @documents << doc
@@ -257,58 +272,12 @@ class App < Sinatra::Base
     @documents
   end
 
-  def get_users_doc(user_id)
-    @user_docs = []
-    $redis.keys('*document*').each do |key|
-      doc = JSON.parse($redis.get(key))
-      if user_id == doc["primary_user"]["user_id"]
-        @user_docs.push(doc)
-      end
+  def get_single_redis_item(item_id, what_to_parse=nil)
+    if what_to_parse
+      JSON.parse($redis.get("#{what_to_parse}:#{item_id}"))
+    else
+      JSON.parse($redis.get(item_id))
     end
-    @user_docs
-  end
-
-  def get_editable_docs(user_id)
-    @user_docs = []
-    $redis.keys('*document*').each do |key|
-      doc = JSON.parse($redis.get(key))
-      doc["content_users"].each do |x|
-        if user_id == x["user_id"]
-          @user_docs.push(doc)
-        end
-      end
-    end
-    @user_docs
-  end
-
-  def get_doc(doc_id)
-    @single_doc = JSON.parse($redis.get("document:#{doc_id}"))
-  end
-
-  def get_user(user_id)
-    @user = JSON.parse($redis.get("user:#{user_id}"))
-  end
-
-  def parse_JSON_for_match(item_to_match)
-    @match = nil
-    $redis.keys('*document*').each do |key|
-      doc = JSON.parse($redis.get(key))
-      if item_to_match == doc["doc_name"]
-        @match = true
-      end
-    end
-    @match
-  end
-
-  def create_version_hash(doc_content, editor, doc_id)
-    version_hash = {
-    doc_version: $redis.get("doc_version:#{doc_id}"),
-    doc_content: doc_content,
-    create_date: DateTime.now,
-    edit_made_by: editor,
-    }
-    $redis.incr("doc_version:#{doc_id}")
-    version_hash
   end
 
   def log_in_google
@@ -321,6 +290,7 @@ class App < Sinatra::Base
     url_for_login
   end
 
+  ##### Boolean Methods #######
   def approved(item1, item2)
     if item1 == item2
       is_approved = true
@@ -330,7 +300,7 @@ class App < Sinatra::Base
 
   def can_edit(id_num)
     is_approved = nil
-    doc = get_doc(id_num)
+    doc = get_single_redis_item(id_num, "document")
       doc["content_users"].each do |x|
         if x["user_id"] == session[:current_user][:user_id]
           is_approved = true
@@ -339,6 +309,7 @@ class App < Sinatra::Base
     is_approved
   end
 
+  ##### creating Hashes #######
   def edit_request_hash(user_id, doc_id)
     request_hash = {
       request_user_id: user_id,
@@ -348,5 +319,15 @@ class App < Sinatra::Base
     request_hash
   end
 
+  def create_version_hash(doc_content, editor, doc_id)
+    version_hash = {
+    doc_version: $redis.get("doc_version:#{doc_id}"),
+    doc_content: doc_content,
+    create_date: DateTime.now,
+    edit_made_by: editor,
+    }
+    $redis.incr("doc_version:#{doc_id}")
+    version_hash
+  end
 
 end
