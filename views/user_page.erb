@@ -16,8 +16,10 @@
       </section>
       <section class="box" id="pending_requests">
       <h2 class="section_title"> Pending Requests </h2>
-       <% @user["pending_requests"].each do |request| %>
-          <%= render(:erb, :_pending_list, :locals => {:request => request}) %>
+       <% if @user["pending_requests"] %>
+         <% @user["pending_requests"].each do |request| %>
+            <%= render(:erb, :_pending_list, :locals => {:request => request}) %>
+          <% end %>
         <% end %>
       </section>
       <section class="box" id="user_permissions">
