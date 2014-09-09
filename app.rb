@@ -151,7 +151,7 @@ class App < Sinatra::Base
   post('/documents') do
     content = render(:markdown, params[:content])
     usr =  get_single_redis_item(session[:current_user][:user_id], "user")
-    match = get_by_params({:query_type => "match", :param1 => params[:title].downcase, :what_to_query => "document"})
+    match = find_match({:param1 => params[:title].downcase, :what_to_query => "document"})
     if match
       redirect to ("/documents/new?title_match=true")
     else
@@ -261,12 +261,6 @@ class App < Sinatra::Base
             @documents << doc
           end
         end
-      elsif options[:query_type] == "match"
-        if options[:param1] == doc["doc_name"]
-          return true
-        else
-          return nil
-        end
       else
         @documents << doc
       end
@@ -311,6 +305,17 @@ class App < Sinatra::Base
     is_approved
   end
 
+  def find_match(options={})
+    match = nil
+    $redis.keys("*#{options[:what_to_query]}*").each do |key|
+      doc = get_single_redis_item(key)
+      if options[:param1] == doc["doc_name"]
+        match = true
+      end
+    end
+    match
+  end
+
   ##### creating Hashes #######
   def edit_request_hash(user_id, doc_id)
     request_hash = {
@@ -331,5 +336,4 @@ class App < Sinatra::Base
     $redis.incr("doc_version:#{doc_id}")
     version_hash
   end
-
 end

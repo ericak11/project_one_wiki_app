@@ -4,7 +4,7 @@ require 'redcarpet'
 
 class Document
   attr_reader :primary_user, :doc_id
-  attr_accessor :doc_content, :doc_name, :content_users
+  attr_accessor :doc_content, :doc_name, :content_users, :tags
   @@doc_versions = []
   def initialize(primary_user, doc_name, doc_content, doc_id)
     @primary_user = primary_user
@@ -12,6 +12,7 @@ class Document
     @doc_content = doc_content
     @doc_id = doc_id
     @content_users = []
+    @tags = []
     $redis.setnx("doc_version:#{doc_id}", 0)
   end
 
@@ -23,6 +24,7 @@ class Document
       doc_id: doc_id,
       doc_versions: @@doc_versions,
       content_users: content_users,
+      tags: tags,
     }
     doc_hash
   end
