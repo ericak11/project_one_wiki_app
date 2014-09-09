@@ -152,6 +152,7 @@ class App < Sinatra::Base
     content = render(:markdown, params[:content])
     usr =  get_single_redis_item(session[:current_user][:user_id], "user")
     match = get_by_params({:query_type => "match", :param1 => params[:title].downcase, :what_to_query => "document"})
+    binding.pry
     if match
       redirect to ("/documents/new?title_match=true")
     else
@@ -262,6 +263,7 @@ class App < Sinatra::Base
           end
         end
       elsif options[:query_type] == "match"
+        binding.pry
         if options[:param1] == doc["doc_name"]
           return true
         end
