@@ -1,0 +1,28 @@
+<% request_user_id = request["request_user_id"] %>
+<% requested_user = get_user(request_user_id) %>
+<% name = requested_user["name"] %>
+<% id = requested_user["user_id"] %>
+<% request_doc_id = request["doc_requested_for"] %>
+<% requested_doc = get_doc(request_doc_id) %>
+<% doc_name = requested_doc["doc_name"] %>
+
+<h3>
+  <p>Request from: <%= name %> to edit '<%= doc_name %>' </p>
+  <div id="edit_buttons">
+    <ul>
+      <li>
+        <form method="post" action="/documents/<%=requested_doc["doc_id"]%>/permission/<%=id%>">
+          <input type="hidden" name="_method" value="PUT" />
+          <input class="submit_button" type="submit" value="grant" id="grant">
+        </form>
+      </li>
+      <li>
+        <form method="post" action="/documents/deny/<%=id%>">
+          <input type="hidden" name="_method" value="PUT" />
+          <input class="submit_button" type="submit" value="reject" id="reject">
+        </form>
+      </li>
+    </ul>
+</div>
+</h3>
+

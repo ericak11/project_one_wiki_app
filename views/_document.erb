@@ -1,9 +1,6 @@
-<% if session[:current_user] %>
-  <% @user_id = session[:current_user][:user_id] %>
-<%else %>
-  <% @user_id = nil %>
-<%end%>
-
+<% @approved = approved(doc["primary_user"]["user_id"], @user_id) %>
+<% name = doc["doc_name"] %>
+<% name_link = name.gsub(" ", "_") %>
 <section class="document_display">
   <% num = doc["doc_versions"].length-1 %>
   <h1><%= doc["doc_name"] %></h1>
@@ -11,19 +8,26 @@
   <p>Last edit made by:
     <span class="cursive"><%=doc["doc_versions"][num]["edit_made_by"]["name"]%></span>
   </p>
-  <% name = doc["doc_name"] %>
-  <% name_link = name.gsub(" ", "_") %>
   <% if !@index %>
     <div id="edit_buttons">
-    <% if doc["primary_user"]["user_id"] == @user_id%>
+    <% if @approved  %>
       <ul>
        <li><form action="/documents/<%=name_link%>/edit" method="get">
          <input class="submit_button" type="submit" value="Edit" id="doc_edit">
        </form></li>
-      <li><form method="post" action="<%= doc["doc_id"]  %>">
+        <li><form method="post" action="<%= doc["doc_id"]  %>">
          <input type="hidden" name="_method" value="DELETE" />
          <input class="submit_button" type="submit" value="Delete" id="doc_delete">
-      </form></li>
+        </form></li>
+    <% elsif @can_edit %>
+      <li><form action="/documents/<%=name_link%>/edit" method="get">
+         <input class="submit_button" type="submit" value="Edit" id="doc_edit">
+       </form></li>
+    <% elsif session[:current_user] %>
+      <li><form method="post" action="/users/<%= doc["primary_user"]["user_id"] %>/<%=doc["doc_id"]%>">
+          <input type="hidden" name="_method" value="PUT" />
+          <input class="submit_button" type="submit" value="Request Permission" id="edit_permission">
+       </form></li>
     <% end %>
     <li><form method="get" action="/documents/<%= name_link %>/versions">
        <input class="submit_button" type="submit" value="See Versions" id="versions">

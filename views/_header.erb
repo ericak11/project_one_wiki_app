@@ -4,7 +4,6 @@
     <h1 id="page_title"><a href="/">WDI Wiki</a></h1>
       <section id="top_nav">
         <li>
-
           <form class="header_search" action="/search" method="get">
             <input type="search" name="search" id="search" placeholder="search">
             <input class="button" type="submit" value="Go">
@@ -12,7 +11,7 @@
         </li>
         <% if session[:current_user] %>
           <li><a class="header_link" id="logout" href="/logout">Logout</a></li>
-          <li><a class="header_link" id="add_new_doc" href="/documents/new">Add New Document</a></li>
+          <li><a class="header_link" id="add_new_doc" href="/documents/new">Add New Article</a></li>
           <li><a class="header_link" id="view_profile" href="/users/<%=session[:current_user][:user_id]%>">View Profile</a></li>
         <%else %>
             <li><a class="header_link" id="log_in" href="<%=@url%>">Log in with Google</a></li>

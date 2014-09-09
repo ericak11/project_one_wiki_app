@@ -95,8 +95,16 @@ class App < Sinatra::Base
 
   # See a specific document - finds it by name
   get('/documents/:id_name') do
+     @doc = get_documents(params[:id_name].downcase)
+    if session[:current_user]
+      @user_id = session[:current_user][:user_id]
+    else
+      @user_id = nil
+    end
     @url = log_in_google
-    @doc = get_documents(params[:id_name].downcase)
+    if @doc.length > 0
+      @can_edit = can_edit(@doc[0]["doc_id"])
+    end
     render(:erb, :documents)
   end
 
@@ -125,7 +133,9 @@ class App < Sinatra::Base
   # User page wher user can see all their documents
   get('/users/:user_id') do
     @approved = approved(params[:user_id] , session[:current_user][:user_id])
+    @editable_docs =  get_editable_docs(params[:user_id])
     @user_documents = get_users_doc(params[:user_id])
+    @user = get_user(params[:user_id])
     render(:erb, :user_page)
   end
 
@@ -159,18 +169,41 @@ class App < Sinatra::Base
   end
 
   # edit user name
-  put('/users/:user_id') do
-
+  put('/users/:user_id/:doc_id') do
+    user_to_get  = JSON.parse($redis.get("user:#{params[:user_id]}"))
+    user_to_get["pending_requests"].push(edit_request_hash(session[:current_user][:user_id], params[:doc_id]))
+    user_key = "user:#{params[:user_id]}"
+    $redis.set(user_key, user_to_get.to_json)
+    redirect to ("/")
   end
 
   # Edit a document
   put('/documents/:id_name') do
     content = render(:markdown, params[:content])
     doc_to_get  = JSON.parse($redis.get("document:#{params[:doc_id]}"))
-    doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user][:name], params[:doc_id]))
+    doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
     redirect to ("/documents/#{params[:id_name].gsub(" ", "_")}")
+  end
+
+  put('/documents/:doc_id/permission/:request_info') do
+    doc_to_get  = get_doc(params[:doc_id])
+    doc_to_get["content_users"].push({user_id: params[:request_info]})
+    doc_key = "document:#{params[:doc_id]}"
+    $redis.set(doc_key, doc_to_get.to_json)
+    user = get_user(session[:current_user][:user_id])
+    user["pending_requests"].delete_if { |x| x["request_user_id"] == params[:request_info]}
+    user_key = "user:#{session[:current_user][:user_id]}"
+    $redis.set(user_key, user.to_json)
+    redirect back
+  end
+
+  put('/documents/deny/:request_info') do
+    user = get_user(session[:current_user][:user_id])
+    user["pending_requests"].delete_if { |x| x["request_user_id"] == params[:request_info]}
+    user_key = "user:#{session[:current_user][:user_id]}"
+    $redis.set(user_key, user.to_json)
   end
 
   get('/oauth2callback') do
@@ -196,14 +229,13 @@ class App < Sinatra::Base
       name    = get_stuff["displayName"]
       session[:current_user][:user_id] = user_id
       session[:current_user][:name] = name
-
       unless $redis.get("user:#{user_id}")
         new_user = NewUser.new(user_id, name)
         new_user.create_user
       end
 
     end
-    redirect back
+    redirect to ('/')
   end
 
   #####################
@@ -234,6 +266,27 @@ class App < Sinatra::Base
       end
     end
     @user_docs
+  end
+
+  def get_editable_docs(user_id)
+    @user_docs = []
+    $redis.keys('*document*').each do |key|
+      doc = JSON.parse($redis.get(key))
+      doc["content_users"].each do |x|
+        if user_id == x["user_id"]
+          @user_docs.push(doc)
+        end
+      end
+    end
+    @user_docs
+  end
+
+  def get_doc(doc_id)
+    @single_doc = JSON.parse($redis.get("document:#{doc_id}"))
+  end
+
+  def get_user(user_id)
+    @user = JSON.parse($redis.get("user:#{user_id}"))
   end
 
   def parse_JSON_for_match(item_to_match)
@@ -275,19 +328,25 @@ class App < Sinatra::Base
     is_approved
   end
 
-  def can_edit
+  def can_edit(id_num)
     is_approved = nil
-    $redis.keys('*document*').each do |key|
-      doc = JSON.parse($redis.get(key))
+    doc = get_doc(id_num)
       doc["content_users"].each do |x|
-        if x == session[:current_user][:user_id]
+        if x["user_id"] == session[:current_user][:user_id]
           is_approved = true
         end
       end
-    end
     is_approved
   end
 
+  def edit_request_hash(user_id, doc_id)
+    request_hash = {
+      request_user_id: user_id,
+      request_date: DateTime.now,
+      doc_requested_for: doc_id,
+    }
+    request_hash
+  end
 
 
 end

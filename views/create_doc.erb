@@ -1,6 +1,6 @@
 <%= render(:erb, :_header) %>
 <section class="doc_input_form">
-  <%if @approved || @create_new%>
+  <%if @approved || @create_new || @can_edit%>
     <% if params[:title_match] %><h2 id="search_error">This title already exists</h2><% end %>
     <% if !@edit %>
     <form action="/documents" method="post">
@@ -17,11 +17,12 @@
         <% end %>
     <% end %>
         <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
-        <textarea required name="content" id="content"><% if @approved %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea><br>
+        <textarea required name="content" id="content"><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %></textarea><br>
         <br>
       <input class="submit_button" type="submit">
   <% else %>
       <h2 id="search_error">You are not authorized to make this adustment</h2>
+
   <% end %>
   </form>
 </section>
