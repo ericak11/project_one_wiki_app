@@ -264,6 +264,8 @@ class App < Sinatra::Base
       elsif options[:query_type] == "match"
         if options[:param1] == doc["doc_name"]
           return true
+        else
+          return nil
         end
       else
         @documents << doc
