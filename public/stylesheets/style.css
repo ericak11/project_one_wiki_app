@@ -42,7 +42,7 @@ code{
 
 #page_title a:hover {
   text-decoration: none;
-   color: rgba(129, 70, 92,1);
+   color: rgba(180, 62, 106, 1);
 }
 .header {
   position: fixed;
@@ -85,7 +85,7 @@ nav ul {
 }
 
 a {
-  color: rgba(129, 70, 92,1);
+  color: rgba(180, 62, 106, 1);
 }
 
 a:hover
@@ -117,7 +117,7 @@ a:hover
 
 .header_link:hover
 {
-  background: rgba(129, 70, 92,1);
+  background: rgba(180, 62, 106, 1);
 }
 
 #top_nav li
@@ -159,7 +159,7 @@ a:hover
   border-radius: 30px;
 }
 .button:hover  {
-  background-color: rgba(129, 70, 92,1);
+  background-color: rgba(180, 62, 106, 1);
   color:rgba(255,255,255,1);
   border:2px solid rgba(226,253,219,1);
 }
@@ -207,7 +207,7 @@ textarea {
 }
 
 .submit_button {
-  background-color:rgba(129, 70, 92,1);
+  background-color:rgba(180, 62, 106, 1);
   color:rgba(255,255,255,1);
   font-size:18px;
   line-height:30px;
