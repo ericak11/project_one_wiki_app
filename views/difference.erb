@@ -1,4 +1,5 @@
 <%= render(:erb, :_header) %>
+<%= render(:erb, :_nav_bar) %>
 <% @documents[0]["doc_versions"].each_with_index do |doc, index| %>
   <% if index == @version.to_i %>
     <% @string1 = ReverseMarkdown.convert doc["doc_content"] %>
@@ -11,5 +12,10 @@
 <section class="main">
 
 <%= Diffy::Diff.new(string1, string2, :include_plus_and_minus_in_html => true, :context => 1000).to_s(:html_simple) %>
-
+<div id="edit_buttons">
+<li><form method="get" action="/documents/<%= params[:id_name] %>/versions">
+       <input class="submit_button" type="submit" value="Back" id="back">
+    </form>
+</li>
+</div>
 </section>

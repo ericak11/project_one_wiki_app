@@ -1,5 +1,16 @@
 <section class="header">
-  <img width="100%"src="/images/skyline.jpg" alt="">
+  <% if session[:current_user] %>
+    <% if session[:current_user][:gender].match("female") %>
+      <img width="100%"src="/images/skyline.jpg" alt="">
+    <% elsif session[:current_user][:gender].match("male") %>
+      <img width="100%"src="/images/skyline_blue.jpg" alt="">
+    <% end %>
+  <% else %>
+    <img width="100%"src="/images/skyline_neutral.jpg" alt="">
+  <% end %>
+
+
+
   <section id="blackBar">
     <h1 id="page_title"><a href="/">WDI Wiki</a></h1>
       <section id="top_nav">

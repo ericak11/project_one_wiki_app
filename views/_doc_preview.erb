@@ -4,8 +4,9 @@
 <h3>
   <a href="/documents/<%=name_link %>"><%= doc["doc_name"] %></a>
   <br>
-  <section class="tiny_font">document creator:
-    <span class="cursive"><%= doc["primary_user"]["name"]%></span>
+  <section class="tiny_font">
+    Tags:<span class="cursive"><%= doc["tags"]%></span><br>
+    document creator:<span class="cursive"><%= doc["primary_user"]["name"]%></span>
   </section>
 </h3>
 

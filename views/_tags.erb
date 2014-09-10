@@ -1,3 +1,13 @@
+<% have_tag = nil %>
+<% if @document %>
+  <% @document.each do |doc| %>
+    <% doc["tags"].each do |x| %>
+      <% if x == tag %>
+        <% have_tag = "checked"  %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+  <input type="checkbox" id="<%=tag%>" name="tags[]" value="<%=tag%>" <%= have_tag %> />
+  <label class="tags" for="<%=tag%>"> <%=tag%> </label><br>
 
-<input type="checkbox" id="<%=tag%>" name="tags[]" value="<%=tag%>" />
-<label class="tags" for="<%=tag%>"> <%=tag%> </label><br>

@@ -2,7 +2,7 @@
 <%= render(:erb, :_nav_bar) %>
 <section class="main">
   <section class="box">
-    <h2 class="section_title"> Search Results for <%= @result %></h2>
+    <h2 class="section_title"> Search Results for '<%= @result %>'</h2>
     <% @doc.each do |doc| %>
       <%= render(:erb, :_doc_preview, :locals => {:doc => doc}) %>
     <% end %>

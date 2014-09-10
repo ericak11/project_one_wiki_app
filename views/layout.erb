@@ -4,11 +4,20 @@
     <meta charset="utf-8">
 
     <title>wdi_wiki_app</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='http://fonts.googleapis.com/css?family=News+Cycle:400,700|Short+Stack|Doppio+One|Maven+Pro' rel='stylesheet' type='text/css'>
     <link href="<%= url('/stylesheets/normalize.css') %>" rel="stylesheet" type="text/css" media="all">
-    <link href="<%= url('/stylesheets/style.css') %>" rel="stylesheet" type="text/css" media="all">
+    <% if session[:current_user] %>
+      <% if session[:current_user][:gender].match("female") %>
+        <link href="<%= url('/stylesheets/styles1.css') %>" rel="stylesheet" type="text/css" media="all">
+      <% elsif session[:current_user][:gender].match("male") %>
+        <link href="<%= url('/stylesheets/styles2.css') %>" rel="stylesheet" type="text/css" media="all">
+      <% end %>
+    <% else %>
+      <link href="<%= url('/stylesheets/style.css') %>" rel="stylesheet" type="text/css" media="all">
+    <% end %>
   </head>
   <body>
 

@@ -260,8 +260,13 @@ class App < Sinatra::Base
       get_stuff = HTTParty.get("https://www.googleapis.com/plus/v1/people/me?access_token=#{response["access_token"]}")
       user_id = get_stuff["id"]
       name    = get_stuff["displayName"]
+      gender  = get_stuff["gender"]
+
+
       session[:current_user][:user_id] = user_id
       session[:current_user][:name] = name
+      session[:current_user][:gender] = gender
+           binding.pry
       unless $redis.get("user:#{user_id}")
         new_user = NewUser.new(user_id, name)
         new_user.create_user
