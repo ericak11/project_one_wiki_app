@@ -85,7 +85,6 @@ class App < Sinatra::Base
 
   get ('/search/:tag') do
     @docs =  get_by_params({:query_type => "compare to user", :param1 => params[:tag],:param2 => "tags",:what_to_query => "document"})
-    binding.pry
   end
 
   get('/documents') do
