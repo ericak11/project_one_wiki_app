@@ -71,7 +71,6 @@ class App < Sinatra::Base
   end
 
   get ('/search') do
-    binding.pry
     page = params[:search].gsub(" ", "_")
     @doc = get_by_params({:query_type => "id", :id => page.downcase, :what_to_query => "document"})
     if @doc.length >= 1
