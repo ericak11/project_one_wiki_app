@@ -266,7 +266,6 @@ class App < Sinatra::Base
       session[:current_user][:user_id] = user_id
       session[:current_user][:name] = name
       session[:current_user][:gender] = gender
-           binding.pry
       unless $redis.get("user:#{user_id}")
         new_user = NewUser.new(user_id, name)
         new_user.create_user
