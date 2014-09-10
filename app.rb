@@ -284,7 +284,7 @@ class App < Sinatra::Base
     $redis.keys("*#{options[:what_to_query]}*").each do |key|
       doc = get_single_redis_item(key)
       if options[:query_type] == "id"
-        if doc["doc_name"].gsub(" ", "_").match(options[:id])
+        if doc["doc_name"].gsub(" ", "_") == (options[:id])
           @documents << doc
         end
       elsif options[:query_type] == "single_doc"
