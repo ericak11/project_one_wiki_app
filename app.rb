@@ -178,6 +178,8 @@ class App < Sinatra::Base
         tag_array.push(x.strip)
         params[:tags].push(x.strip)
       end
+      tag_array.delete("")
+      params[:tags].delete("")
       $redis.set("article_tags", tag_array.uniq.to_json)
       new_doc = Document.new(usr, params[:title].downcase, content, $redis.get('doc_counter'), params[:tags])
       new_doc.create_doc
@@ -261,8 +263,6 @@ class App < Sinatra::Base
       user_id = get_stuff["id"]
       name    = get_stuff["displayName"]
       gender  = get_stuff["gender"]
-
-
       session[:current_user][:user_id] = user_id
       session[:current_user][:name] = name
       session[:current_user][:gender] = gender
