@@ -1,3 +1,11 @@
 <nav>
-
+  <% if get_single_redis_item("article_tags") %>
+  <ul>
+    <% get_single_redis_item("article_tags").each do |tag| %>
+      <li>
+      <%= render(:erb, :_tag_links, :locals => {:tag => tag}) %>
+      </li>
+    <%end%>
+  </ul>
+  <%end%>
 </nav>

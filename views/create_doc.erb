@@ -19,6 +19,15 @@
         <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
         <textarea required name="content" id="content"><% if @document %><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %><% end %></textarea><br>
         <br>
+        <label>Tags: </label>
+        <section id="tag_list">
+          <% @tags.each do |tag| %>
+            <%= render(:erb, :_tags, :locals => {:tag => tag}) %>
+          <% end %>
+          <label class="smaller_text">Add tags(seperate each with commas) </label>
+          <input class="title_input" type="text" name="user_input_tag" id="input_box">
+          <br>
+        </section>
       <input class="submit_button" type="submit">
   <% else %>
       <h2 id="search_error">You are not authorized to make this adustment</h2>

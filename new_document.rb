@@ -6,13 +6,13 @@ class Document
   attr_reader :primary_user, :doc_id
   attr_accessor :doc_content, :doc_name, :content_users, :tags
   @@doc_versions = []
-  def initialize(primary_user, doc_name, doc_content, doc_id)
+  def initialize(primary_user, doc_name, doc_content, doc_id, tags =[])
     @primary_user = primary_user
     @doc_name = doc_name
     @doc_content = doc_content
     @doc_id = doc_id
     @content_users = []
-    @tags = []
+    @tags = tags
     $redis.setnx("doc_version:#{doc_id}", 0)
   end
 
@@ -44,16 +44,5 @@ class Document
     doc_key = "document:#{doc_id}"
     $redis.set(doc_key, create_doc_hash.to_json)
   end
-
-
-  # def edit_doc(id)
-  #    = JSON.parse($redis.get(id))
-  #   doc_key = "document:#{doc_id}"
-  #   $redis.set(doc_key, create_doc_hash.to_json)
-  # end
-
-  # def add_content_user
-
-  # end
 
 end

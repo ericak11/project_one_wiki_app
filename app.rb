@@ -28,6 +28,7 @@ class App < Sinatra::Base
                         :password => uri.password})
     set :session_secret, 'super secret'
     $redis.setnx("doc_counter", 0)
+    $redis.setnx("article_tags", ["Ruby", "Sinatra", "GitHub", "JSON", "HTTParty", "HTML", "CSS", "API", "bash", "class", "module", "hash", "array", "Git"])
   end
 
   before do
@@ -71,7 +72,19 @@ class App < Sinatra::Base
 
   get ('/search') do
     page = params[:search].gsub(" ", "_")
-    redirect to ("/documents/#{page}")
+    @doc = get_by_params({:query_type => "id", :id => params[:search].downcase, :what_to_query => "document"})
+    if @doc.length > 1
+      render(:erb, :search_results)
+    elsif @doc.length < 1
+      redirect to ("/?search=#{params[:search]}")
+    else
+      redirect to ("/documents/#{page}")
+    end
+  end
+
+  get ('/search/:tag') do
+    @docs =  get_by_params({:query_type => "compare to user", :param1 => params[:tag],:param2 => "tags",:what_to_query => "document"})
+    binding.pry
   end
 
   get('/documents') do
@@ -90,12 +103,13 @@ class App < Sinatra::Base
   # Create a new document - refers to document class
   get('/documents/new') do
     @create_new = true
+    @tags = get_single_redis_item("article_tags")
     render(:erb, :create_doc)
   end
 
   # See a specific document - finds it by name
   get('/documents/:id_name') do
-     @doc = get_by_params({:query_type => "id", :id => params[:id_name].downcase, :what_to_query => "document"})
+    @doc = get_by_params({:query_type => "single_doc", :id => params[:id_name].downcase, :what_to_query => "document"})
     if session[:current_user]
       @user_id = session[:current_user][:user_id]
     else
@@ -111,6 +125,7 @@ class App < Sinatra::Base
   # See a specific document - and make changes
   get('/documents/:id_name/edit') do
     @edit = true
+    @tags = get_single_redis_item("article_tags")
     @document = get_by_params({:query_type => "id", :id => params[:id_name], :what_to_query => "document"})
     @approved = approved(@document[0]["primary_user"]["user_id"], session[:current_user][:user_id])
     @can_edit = can_edit(@document[0]["doc_id"])
@@ -133,7 +148,7 @@ class App < Sinatra::Base
   # User page wher user can see all their documents
   get('/users/:user_id') do
     @approved = approved(params[:user_id] , session[:current_user][:user_id])
-    @editable_docs =  get_by_params({:query_type => "compare to user", :param1 => params[:user_id], :what_to_query => "document"})
+    @editable_docs =  get_by_params({:query_type => "compare to user", :param1 => params[:user_id],:param2 => "content_users",:what_to_query => "document"})
     @user_documents = get_by_params({:query_type => "compare to primary", :param1 => params[:user_id], :what_to_query => "document"})
     @user = get_single_redis_item(params[:user_id], "user")
     render(:erb, :user_page)
@@ -155,7 +170,14 @@ class App < Sinatra::Base
     if match
       redirect to ("/documents/new?title_match=true")
     else
-      new_doc = Document.new(usr, params[:title].downcase, content, $redis.get('doc_counter'))
+      user_array = params[:user_input_tag].split(",")
+      tag_array = get_single_redis_item("article_tags")
+      user_array.each do |x|
+        tag_array.push(x.strip)
+        params[:tags].push(x.strip)
+      end
+      $redis.set("article_tags", tag_array.uniq.to_json)
+      new_doc = Document.new(usr, params[:title].downcase, content, $redis.get('doc_counter'), params[:tags])
       new_doc.create_doc
       $redis.incr('doc_counter')
       redirect to ('/')
@@ -179,8 +201,16 @@ class App < Sinatra::Base
 
   # Edit a document
   put('/documents/:id_name') do
+    user_array = params[:user_input_tag].split(",")
+    tag_array = get_single_redis_item("article_tags")
+    user_array.each do |x|
+      tag_array.push(x.strip)
+      params[:tags].push(x.strip)
+    end
+    $redis.set("article_tags", tag_array.uniq.to_json)
     content = render(:markdown, params[:content])
     doc_to_get  = get_single_redis_item(params[:doc_id], "document")
+    doc_to_get["tags"] = params[:tags]
     doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
     $redis.set(doc_key, doc_to_get.to_json)
@@ -251,12 +281,16 @@ class App < Sinatra::Base
         if doc["doc_name"].gsub(" ", "_").match(options[:id])
           @documents << doc
         end
+      elsif options[:query_type] == "single_doc"
+        if doc["doc_name"].gsub(" ", "_") == options[:id]
+          @documents << doc
+        end
       elsif options[:query_type] == "compare to primary"
         if options[:param1] == doc["primary_user"]["user_id"]
           @documents << doc
         end
       elsif options[:query_type] == "compare to user"
-        doc["content_users"].each do |x|
+        doc[options[:param2]].each do |x|
           if options[:param1] == x["user_id"]
             @documents << doc
           end
