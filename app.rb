@@ -73,7 +73,7 @@ class App < Sinatra::Base
   get ('/search') do
     page = params[:search].gsub(" ", "_")
     @doc = get_by_params({:query_type => "id", :id => params[:search].downcase, :what_to_query => "document"})
-    if @doc.length > 1
+    if @doc.length >= 1
       render(:erb, :search_results)
     elsif @doc.length < 1
       redirect to ("/?search=#{params[:search]}")
