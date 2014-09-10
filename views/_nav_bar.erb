@@ -1,5 +1,6 @@
 <nav>
   <% if get_single_redis_item("article_tags") %>
+  <h3 class="centered"> Article Tags </h3>
   <ul>
     <% get_single_redis_item("article_tags").each do |tag| %>
       <li>
