@@ -1,8 +1,8 @@
 <section class="header">
   <% if session[:current_user] %>
-    <% if session[:current_user][:gender].match("female") %>
+    <% if session[:current_user][:gender] == "female" %>
       <img width="100%"src="/images/skyline.jpg" alt="">
-    <% elsif session[:current_user][:gender].match("male") %>
+    <% elsif session[:current_user][:gender] == "male" %>
       <img width="100%"src="/images/skyline_blue.jpg" alt="">
     <% end %>
   <% else %>

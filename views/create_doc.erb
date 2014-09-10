@@ -21,6 +21,7 @@
         <br>
         <label>Tags: </label>
         <section id="tag_list">
+          <input type="hidden" id="empty" name="tags[]" value="" checked />
           <% @tags.each do |tag| %>
             <%= render(:erb, :_tags, :locals => {:tag => tag}) %>
           <% end %>
