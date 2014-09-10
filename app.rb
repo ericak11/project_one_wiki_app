@@ -72,6 +72,7 @@ class App < Sinatra::Base
 
   get ('/search') do
     page = params[:search].gsub(" ", "_")
+    @result = params[:search]
     @doc = get_by_params({:query_type => "id", :id => page.downcase, :what_to_query => "document"})
     if @doc.length >= 1
       render(:erb, :search_results)
@@ -83,7 +84,9 @@ class App < Sinatra::Base
   end
 
   get ('/search/:tag') do
-    @docs =  get_by_params({:query_type => "compare to user", :param1 => params[:tag],:param2 => "tags",:what_to_query => "document"})
+    @result = params[:tag]
+    @doc =  get_by_params({:query_type => "compare to something", :param1 => params[:tag],:param2 => "tags", :what_to_query => "document"})
+    render(:erb, :search_results)
   end
 
   get('/documents') do
@@ -147,7 +150,7 @@ class App < Sinatra::Base
   # User page wher user can see all their documents
   get('/users/:user_id') do
     @approved = approved(params[:user_id] , session[:current_user][:user_id])
-    @editable_docs =  get_by_params({:query_type => "compare to user", :param1 => params[:user_id],:param2 => "content_users",:what_to_query => "document"})
+    @editable_docs =  get_by_params({:query_type => "compare to something", :param1 => params[:user_id],:param2 => "content_users", :param3 => "user_id", :what_to_query => "document"})
     @user_documents = get_by_params({:query_type => "compare to primary", :param1 => params[:user_id], :what_to_query => "document"})
     @user = get_single_redis_item(params[:user_id], "user")
     render(:erb, :user_page)
@@ -288,9 +291,15 @@ class App < Sinatra::Base
         if options[:param1] == doc["primary_user"]["user_id"]
           @documents << doc
         end
-      elsif options[:query_type] == "compare to user"
+      elsif options[:query_type] == "compare to something"
         doc[options[:param2]].each do |x|
-          if options[:param1] == x["user_id"]
+          case
+          when options[:param3]
+            @search_params = options[:param1] == x[options[:param3]]
+          when !options[:param3]
+            @search_params = options[:param1] == x
+          end
+          if @search_params
             @documents << doc
           end
         end
