@@ -82,6 +82,8 @@ nav ul {
   column-count: 2;
   margin-left: -10px;
   margin-top: -10px;
+  font-family: 'Short Stack', cursive;
+  font-size: 14px;
 }
 
 a {
@@ -262,4 +264,10 @@ textarea {
 #tag_list {
   -webkit-column-count: 4;
   column-count: 4;
+}
+.tags_indoc_list {
+  padding-right: 15px;
+  font-size: 22px;
+  display: inline-block;
+  font-family: 'Short Stack', cursive;
 }

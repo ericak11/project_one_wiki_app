@@ -7,7 +7,9 @@
   <%= doc["doc_versions"][num]["doc_content"]%>
   <% if doc["tags"] %>
     <% doc["tags"].each do |tag| %>
+    <section class="tags_indoc_list">
       <%= render(:erb, :_tag_links, :locals => {:tag => tag}) %>
+    </section>
     <%end%>
   <%end%>
   <p>Last edit made by:
