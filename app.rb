@@ -44,13 +44,9 @@ class App < Sinatra::Base
   # API KEYS
   ########################
   if ENV["RACK_ENV"] == "development"
-    CLIENT_ID     = "435810356359-lv1hhiqgrn7ccpu1hs6cl0jenuetdore.apps.googleusercontent.com"
-    CLIENT_SECRET = "KeWjgff5KkMh4oORP0x-gsdZ"
     CALLBACK_URL  = "http://127.0.0.1:3000/oauth2callback"
   else
   # HEROKU
-    CLIENT_ID     = "435810356359-a7hc6g5ih01shh5bo6cj5k2fuqrhsuts.apps.googleusercontent.com"
-    CLIENT_SECRET = "6LNtL3QfRb7Jar8JujC70TMU"
     CALLBACK_URL  = "http://ancient-inlet-1734.herokuapp.com/oauth2callback"
   end
   ########################
