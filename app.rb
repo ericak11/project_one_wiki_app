@@ -217,6 +217,7 @@ class App < Sinatra::Base
     doc_to_get["tags"] = params[:tags]
     doc_to_get["doc_versions"].push(create_version_hash(content, session[:current_user], params[:doc_id]))
     doc_key = "document:#{params[:doc_id]}"
+    binding.pry
     $redis.set(doc_key, doc_to_get.to_json)
     redirect to ("/documents/#{params[:id_name].gsub(" ", "_")}")
   end
