@@ -248,8 +248,8 @@ class App < Sinatra::Base
         "https://accounts.google.com/o/oauth2/token",
         :body => {
           code: code,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
+          client_id: ENV["CLIENT_ID"],
+          client_secret: ENV["CLIENT_SECRET"],
           redirect_uri: CALLBACK_URL,
           grant_type: "authorization_code",
           },
@@ -325,7 +325,7 @@ class App < Sinatra::Base
     session[:state] = state
     scope = "profile"
     # storing state in session because we need to compare it in a later request
-    url_for_login = "#{base_url}?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
+    url_for_login = "#{base_url}?client_id=#{ENV["CLIENT_ID"]}&response_type=code&redirect_uri=#{CALLBACK_URL}&state=#{state}&scope=#{scope}"
     url_for_login
   end
 
