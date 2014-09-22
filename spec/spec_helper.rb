@@ -15,5 +15,3 @@ Capybara.app = App
 RSpec.configure do |config|
   config.include Capybara::DSL
 end
-
-

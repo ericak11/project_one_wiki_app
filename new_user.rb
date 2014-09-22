@@ -11,7 +11,7 @@ class NewUser
     new_user = {
       user_id: user_id,
       name: name,
-      pending_requests: pending_requests,
+      pending_requests: pending_requests
     }
     new_user
   end
@@ -20,7 +20,4 @@ class NewUser
     user_key = "user:#{user_id}"
     $redis.set(user_key, create_user_hash.to_json)
   end
-
-
-
 end

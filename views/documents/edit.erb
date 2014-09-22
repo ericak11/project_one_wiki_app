@@ -1,0 +1,29 @@
+<%= render(:erb, :_header) %>
+<section class="doc_input_form">
+<%if @approved || @can_edit%>
+  <form action="/documents" method="post">
+  <form method="post" action="/documents/<%= @document[0]["doc_name"] %>">
+    <input type="hidden" name="_method" value="PUT" />
+    <% @document.each do |doc| %>
+          <h3>You are editing: <%= doc["doc_name"]%></h3>
+          <input type="hidden" name="doc_id" value="<%=doc["doc_id"]%>"/>
+          <br>
+    <% end %>
+    <label for="content">Please make sure you are using Markdown when inputing document contents</label><br>
+      <textarea required name="content" id="content"><% @document.each do |doc| %><% num = doc["doc_versions"].length-1 %><%= ReverseMarkdown.convert doc["doc_versions"][num]["doc_content"]%><% end %></textarea><br>
+        <br>
+    <label>Tags: </label>
+      <section id="tag_list">
+      <input type="hidden" id="empty" name="document[tags[]]" checked />
+          <% @tags.each do |tag| %>
+            <%= render(:erb, :_tags, :locals => {:tag => tag}) %>
+          <% end %>
+          <label class="smaller_text">Add tags(seperate with commas) </label>
+          <input class="title_input" type="text" name="user_input_tag" id="input_box">
+      </section><br>
+      <input class="submit_button" type="submit">
+  </form>
+<% else %>
+  <h2 id="search_error">You are not authorized to make this adustment</h2>
+<% end %>
+</section>
