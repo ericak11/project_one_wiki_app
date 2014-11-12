@@ -8,6 +8,9 @@ gem 'redcarpet', '3.1.2'
 gem 'httparty', '0.13.1'
 gem 'reverse_markdown', '0.5.1'
 gem 'diffy', '3.0.6'
+gem 'sequel'
+gem 'pg'
+
 
 # only used in development locally
 group :development do
